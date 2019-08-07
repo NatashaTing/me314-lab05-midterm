@@ -172,7 +172,7 @@ print(mean(as.numeric(Direction)))
   <li> **Returns**
     <ul>
       <li>From the correlation matrix plot, a lot of the **lag variables are correlated** with percentage returns from 2 weeks (periods) before them. </li>
-      <li>However, the autocorrelation pattern is erratic. There is no other clear trend. </li>
+      <li>However, the autocorrelation pattern is erratic. There is no other clear trend.</li>
     </ul>
   </li>
   
@@ -279,6 +279,7 @@ logit.fit_all_model <- train(
 pred_class <- predict(logit.fit_all_model, Weekly.train)
 
 confusionMatrix(
+  mode = "prec_recall",
   data = relevel(pred_class, ref = "Up"), 
   reference = relevel(Weekly.train$Direction, ref = "Up")
 )
@@ -287,25 +288,92 @@ confusionMatrix(
 
 <p style="background-color:#e6ffe6; padding: 3%">
 The confusion matrix shows that the model **predicted correctly 554 times** in total. The model made **431 incorrect predictions** in total: in **361** occasions having predicted "Up" when market is down; and **70** times predicted "Down" when market goes up. 
-
 </p>
+
 <ol style="background-color:#e6ffe6; padding: 3%">
-  <li>Accuracy = `0.5624 ` </li>
+
+  <li>**Accuracy** = `0.5624 ` 
     <ul>
-      <li>`554` True Positive / `985` Total Predictions</li>
-      <li>Model is correct in its prediction 56% of the time. </>
+      <li>`554` Correct gueses / `985` Total Predictions</li>
+      <li> **Model is correct in its prediction 56% of the time.** </>
     </ul>
-  <li>Specificity = `0.1814`</li> 
+  </li>
+  
+  <li>**Sensitivity** (a.k.a. **Recall**, True Positive Rate ) = `0.8713`
     <ul>
-      <li> 1 - False Positive = `1` - (`70` / `544`) = `1` - `0.1287` = `0.8713`</li>
+      <li> `1` - False Positive = `1` - (`70` / `544`) = `1` - `0.1287` = `0.8713`</li>
+      <li> `474` True Positive / `544` Total True Positive = `0.8713` </li>
+      <li> **The model correctly predicted 87% of the number of total bullish days.** </li>
     </ul>
-  <li>Sensitivity = `0.8713`</li>
-  <li>Recall = `` </li>
+  </li>
+  
+  <li>**Specificity** (a.k.a. true negative rate) = `0.1814`
+    <ul>
+      <li>`80` True Negative / `441` Total True Negative = `0.1814`</li>
+      <li>**The model correctly predicted 87% of the number of total bearish days.** </li>
+    </ul>
+  </li>
+  
+  <li>**Precision** = `0.5677` 
+    <ul>
+      <li>Def: `474` True Positive / (`474` True Positive + `361` False Positive)] </li>
+      <li> `474` / `835` = 0.5677 </li>
+      <li>**The model correctly predicted 87% of the number of total bullish days.**</li>
+    </ul>
+  </li>
+  
+  <li>**F1** = `0.6875` 
+    <ul>
+      <li>F1 = 2 * [(Precision * Recall) / (Precision + Recall)] </li>
+      <li>2 * [(0.5677 * 0.8713) / (0.5677 + 0.8713)]</li>
+    </ul>
+  </li>
   
 </ol>
 
 
 #### 4.  (Extra credit) Experiment with alternative classification methods. 
-
-    Present the results of your experiments reporting method, associated confusion matrix, and measures of fit on the test set like accuracy, precision, recall, and F1.
+  Present the results of your experiments reporting method, associated confusion matrix, and measures of fit on the test set like accuracy, precision, recall, and F1.
     
+    
+```{r import_for_tree}
+
+# Modeling packages
+library(rpart)       # direct engine for decision tree application
+library(rpart.plot)  # for plotting decision trees
+library(vip)         # for feature importance
+library(pdp)         # for feature effects
+
+```
+
+```{r Q2-decisiontree}
+
+weekly_dt1 <- rpart(
+  formula = Direction ~ Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume,
+  data    = Weekly.train
+) #TODO ask why cannot use anova? 
+
+rpart.plot(weekly_dt1)
+
+plotcp(weekly_dt1)
+
+weekly_dt3 <- train(
+  Direction ~ Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume,
+  data = Weekly.train,
+  method = "rpart",
+  trControl = trainControl(method = "cv", number = 10),
+  tuneLength = 20
+)
+
+ggplot(weekly_dt3)
+
+```
+  
+<p style="background-color:#e6ffe6; padding: 3%">
+</p>
+
+```{r Q2-bagging}
+```
+    
+<p style="background-color:#e6ffe6; padding: 3%">
+</p>

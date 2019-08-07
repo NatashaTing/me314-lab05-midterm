@@ -774,6 +774,7 @@ Only <code>Lag1</code> is moderately significant with a p-value of 0.03, when <c
 pred_class &lt;- predict(logit.fit_all_model, Weekly.train)
 
 confusionMatrix(
+  mode = &quot;prec_recall&quot;,
   data = relevel(pred_class, ref = &quot;Up&quot;), 
   reference = relevel(Weekly.train$Direction, ref = &quot;Up&quot;)
 )</code></pre>
@@ -793,10 +794,9 @@ confusionMatrix(
 ##                                           
 ##  Mcnemar's Test P-Value : &lt;2e-16          
 ##                                           
-##             Sensitivity : 0.8713          
-##             Specificity : 0.1814          
-##          Pos Pred Value : 0.5677          
-##          Neg Pred Value : 0.5333          
+##               Precision : 0.5677          
+##                  Recall : 0.8713          
+##                      F1 : 0.6875          
 ##              Prevalence : 0.5523          
 ##          Detection Rate : 0.4812          
 ##    Detection Prevalence : 0.8477          
@@ -805,36 +805,74 @@ confusionMatrix(
 ##        'Positive' Class : Up              
 ## </code></pre>
 <p style="background-color:#e6ffe6; padding: 3%">
-<p>The confusion matrix shows that the model <strong>predicted correctly 554 times</strong> in total. The model made <strong>431 incorrect predictions</strong> in total: in <strong>361</strong> occasions having predicted “Up” when market is down; and <strong>70</strong> times predicted “Down” when market goes up.</p>
+The confusion matrix shows that the model <strong>predicted correctly 554 times</strong> in total. The model made <strong>431 incorrect predictions</strong> in total: in <strong>361</strong> occasions having predicted “Up” when market is down; and <strong>70</strong> times predicted “Down” when market goes up.
 </p>
 <ol style="background-color:#e6ffe6; padding: 3%">
 <li>
-Accuracy = <code>0.5624</code>
-</li>
+<strong>Accuracy</strong> = <code>0.5624</code>
 <ul>
 <li>
-<code>554</code> True Positive / <code>985</code> Total Predictions
+<code>554</code> Correct gueses / <code>985</code> Total Predictions
 </li>
 <li>
-Model is correct in its prediction 56% of the time. &lt;/&gt;
+<strong>Model is correct in its prediction 56% of the time.</strong> &lt;/&gt;
 </ul>
-<li>
-Specificity = <code>0.1814</code>
-</li>
-<pre><code>&lt;ul&gt;
-  &lt;li&gt; 1 - False Positive = `1` - (`70` / `544`) = `1` - `0.1287` = `0.8713`&lt;/li&gt;
-&lt;/ul&gt;</code></pre>
-<li>
-Sensitivity = <code>0.8713</code>
 </li>
 <li>
-Recall = ``
+<strong>Sensitivity</strong> (a.k.a. <strong>Recall</strong>, True Positive Rate ) = <code>0.8713</code>
+<ul>
+<li>
+<code>1</code> - False Positive = <code>1</code> - (<code>70</code> / <code>544</code>) = <code>1</code> - <code>0.1287</code> = <code>0.8713</code>
+</li>
+<li>
+<code>474</code> True Positive / <code>544</code> Total True Positive = <code>0.8713</code>
+</li>
+<li>
+<strong>The model correctly predicted 87% of the number of total bullish days.</strong>
+</li>
+</ul>
+</li>
+<li>
+<strong>Specificity</strong> (a.k.a. true negative rate) = <code>0.1814</code>
+<ul>
+<li>
+<code>80</code> True Negative / <code>441</code> Total True Negative = <code>0.1814</code>
+</li>
+<li>
+<strong>The model correctly predicted 87% of the number of total bearish days.</strong>
+</li>
+</ul>
+</li>
+<li>
+<strong>Precision</strong> = <code>0.5677</code>
+<ul>
+<li>
+Def: <code>474</code> True Positive / (<code>474</code> True Positive + <code>361</code> False Positive)]
+</li>
+<li>
+<code>474</code> / <code>835</code> = 0.5677
+</li>
+<li>
+<strong>The model correctly predicted 87% of the number of total bullish days.</strong>
+</li>
+</ul>
+</li>
+<li>
+<strong>F1</strong> = <code>0.6875</code>
+<ul>
+<li>
+F1 = 2 * [(Precision * Recall) / (Precision + Recall)]
+</li>
+<li>
+2 * [(0.5677 * 0.8713) / (0.5677 + 0.8713)]
+</li>
+</ul>
 </li>
 </ol>
 </div>
 <div id="extra-credit-experiment-with-alternative-classification-methods." class="section level4">
 <h4>4. (Extra credit) Experiment with alternative classification methods.</h4>
-<pre><code>Present the results of your experiments reporting method, associated confusion matrix, and measures of fit on the test set like accuracy, precision, recall, and F1.</code></pre>
+<p>Present the results of your experiments reporting method, associated confusion matrix, and measures of fit on the test set like accuracy, precision, recall, and F1.</p>
 </div>
 </div>
 </div>
