@@ -69,8 +69,8 @@ summary(lm.fit2)
 ```
 
 <ul style="background-color:#e6ffe6; padding: 3%">
-  <li>For **urban stores**, an additional thousand dollar increase in advertising budget is associated with 0.128015 + -0.006666 = `0.121349`, which is a **0.12 decrease in unit sales**. </li>
-  <li>For **non-urban stores**, an additional thousand dollar increase in advertising budget is associated with 0.128015, which is a **0.13 rise in unit sales**.</li>
+  <li>For **urban stores**, an additional thousand dollar increase in advertising budget is associated with 0.128015 + -0.006666 = `0.121349`, **0.12 decrease in unit sales**. </li>
+  <li>For **non-urban stores**, an additional thousand dollar increase in advertising budget is associated with 0.128015, a **0.13 rise in unit sales**.</li>
 </ul>
 
 
@@ -87,7 +87,7 @@ anova(lm.fit1, lm.fit2)
 <ul style="background-color:#e6ffe6; padding: 3%">
   <li>Between these two models, the one without interaction term is preferred. </li>
   
-  <li>The **second model is less preferred** because: </li>  
+  <li>The **second model** (with interaction term) **is less preferred** because: </li>  
     <ol>
       <li>the interaction term and new main effect `Urban` term both have **high p-values** and are **not statistically significant**; </li>
       <ul><li>we **fail to reject the null hypothesis in ANOVA** where  
@@ -261,8 +261,7 @@ logit.fit_allp[2]
 ```
 
 <p style="background-color:#e6ffe6; padding: 3%">
-Only `Lag1` is moderately significant with a p-value of 0.03, when `Direction` is regressed on all other lag variables and trade `Volume` on a logistic regression. 
-</p>
+Only `Lag1` is moderately significant with a p-value of 0.03, when `Direction` is regressed on all other lag variables and trade `Volume` on a logistic regression.</p>
 
   
     
@@ -274,6 +273,8 @@ Only `Lag1` is moderately significant with a p-value of 0.03, when `Direction` i
 
 ```{r}
 
+set.seed(123)
+
 logit.fit_all_model <- train(
   Direction ~ Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume, 
   data = Weekly.train, 
@@ -281,56 +282,55 @@ logit.fit_all_model <- train(
   family = "binomial",
   trControl = trainControl(method = "cv", number = 10))
 
-pred_class <- predict(logit.fit_all_model, Weekly.train)
+pred_class <- predict(logit.fit_all_model, Weekly.test)
 
 confusionMatrix(
-  mode = "prec_recall",
-  data = relevel(pred_class, ref = "Up"), 
-  reference = relevel(Weekly.train$Direction, ref = "Up")
+  mode = "everything",
+  data = relevel(pred_class, ref = "Down"), 
+  reference = relevel(Weekly.test$Direction, ref = "Down")
 )
 
 ```
 
 <p style="background-color:#e6ffe6; padding: 3%">
-The confusion matrix shows that the model **predicted correctly 554 times** in total. The model made **431 incorrect predictions** in total: in **361** occasions having predicted "Up" when market is down; and **70** times predicted "Down" when market goes up. 
-</p>
+The confusion matrix shows that the model **predicted correctly 554 times** in total. The model made **431 incorrect predictions** in total: in **361** occasions having predicted "Up" when market is down; and **70** times predicted "Down" when market goes up.</p>
 
 <ol style="background-color:#e6ffe6; padding: 3%">
-
-  <li>**Accuracy** = `0.5624 ` 
+  <li> _Note_: "bearish" means market has a downward movement. "bullish" means market has an upward movement. </li>
+  <li>**Accuracy** = `0.4615` 
     <ul>
-      <li>`554` Correct gueses / `985` Total Predictions</li>
-      <li> **Model is correct in its prediction 56% of the time.** </>
+      <li>`48` Correct gueses / `104` Total Predictions</li>
+      <li> **Model is correct in its prediction 56% of the time.** </li>
     </ul>
   </li>
   
-  <li>**Sensitivity** (a.k.a. **Recall**, True Positive Rate ) = `0.8713`
+  <li>**Sensitivity** (a.k.a. **Recall**, True Positive Rate ) = `0.7209`
     <ul>
-      <li> `1` - False Positive = `1` - (`70` / `544`) = `1` - `0.1287` = `0.8713`</li>
-      <li> `474` True Positive / `544` Total True Positive = `0.8713` </li>
-      <li> **The model correctly predicted 87% of the number of total bullish weeks.** </li>
+      <li> `1` - False Positive = `1` - (`44` / `44 + 17`) = `1` - `0.2791` = `0.7209`</li>
+      <li> `31` True Positive / `43` Total True Positive = `0.7209` </li>
+      <li> **The model correctly predicted 72% of the number of total actual bearish weeks.** While this is not bad, it means that **28% of the time, it wrongly predicted that the market would go up when it actually went down** Because of class imbalance this is likely drastic.  </li>
     </ul>
   </li>
   
-  <li>**Specificity** (a.k.a. true negative rate) = `0.1814`
+  <li>**Specificity** (a.k.a. true negative rate) = `0.2787`
     <ul>
-      <li>`80` True Negative / `441` Total True Negative = `0.1814`</li>
-      <li>The model only correctly predicted 18% of the number of total bearish weeks. This means that **82% of the times, it wrongly predicted that the market would up when it actually went down.** Because of class imbalance this is likely drastic. </li>
+      <li>`17` True Negative / `61` Total True Negative = `0.2787`</li>
+      <li>The model only **correctly predicted 28% of the number of total actual bullish week**s.  This means that 72% of the times, it wrongly predicted that the market would go down when it actually went up. </li>
     </ul>
   </li>
   
-  <li>**Precision** = `0.5677` 
+  <li>**Precision** = `0.4133` 
     <ul>
-      <li>Def: `474` True Positive / (`474` True Positive + `361` False Positive)] </li>
-      <li> `474` / `835` = 0.5677 </li>
-      <li>**The model correctly predicted 87% of the number of total bullish weeks.**</li>
+      <li>Def: `31` True Positive / (`31` True Positive + `44` False Positive)] </li>
+      <li> `31` / `75` = 0.4133 </li>
+      <li>**The model correctly predicted 41% of the number of total predicted bearish weeks.**</li>
     </ul>
   </li>
   
-  <li>**F1** = `0.6875` 
+  <li>**F1** = `0.5254 ` 
     <ul>
       <li>F1 = 2 * [(Precision * Recall) / (Precision + Recall)] </li>
-      <li>2 * [(0.5677 * 0.8713) / (0.5677 + 0.8713)]</li>
+      <li>2 * [(0.4133 * 0.7209) / (0.4133 + 0.7209)]</li>
     </ul>
   </li>
   
@@ -354,8 +354,10 @@ library(pdp)         # for feature effects
 
 ```{r Q2-decisiontree}
 
+set.seed(123)
+
 weekly_dt1 <- rpart(
-  formula = Direction ~ Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume,
+  formula = Direction~Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume,
   data    = Weekly.train,
   method = "class"
 ) 
@@ -364,18 +366,18 @@ rpart.plot(weekly_dt1)
 
 plotcp(weekly_dt1)
 
-pre_class_dt1 <- predict(weekly_dt1, Weekly.train, type="class")
+pre_class_dt1 <- predict(weekly_dt1, Weekly.test, type="class")
 
 confusionMatrix(
-  mode = "prec_recall",
-  data = relevel(pre_class_dt1, ref = "Up"), 
-  reference = relevel(Weekly.train$Direction, ref = "Up")
+  mode = "everything",
+  data = relevel(pre_class_dt1, ref = "Down"), 
+  reference = relevel(Weekly.test$Direction, ref = "Down")
 )
 
 ```
   
 <p style="background-color:#e6ffe6; padding: 3%">
-
+As the tree diagram shows, a decision tree model of 7 levels is fitted on the training data set. The Complexity Parameter Table shows that `0.022` looks like a good choice of cp for pruning, as it is the least expensive value for which the mean lies below the horizontal line of relative error. However, this tree has not been pruned.
 </p>
 
 ```{r Q2-bagging}
@@ -387,48 +389,75 @@ set.seed(123)
 
 # train bagged model
 week_bag1 <- bagging(
-  formula = Direction ~ Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume,
+  formula = Direction~Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume,
   data = Weekly.train,
   nbagg = 100,  
   coob = TRUE,
   control = rpart.control(minsplit = 2, cp = 0)
 )
 
-pred_class_bag1 <- predict(week_bag1, method="class", Weekly.train)
+# based on training data, Out-of-bag estimate of misclassification error:  0.467 
 
+# try doing conf matrix using manual means
+weekly_bag_probs <-  predict(week_bag1, newdata=Weekly.test,
+                      type = "class")
+table(weekly_bag_probs, Weekly.test$Direction)
+mean(weekly_bag_probs != Weekly.test$Direction)     
+# this means no info error rate is 1 - 0.5096154 = 0.4903846
 
+#validate with package-produced matrix
 confusionMatrix(
-  mode = "prec_recall",
-  data = relevel(pred_class_bag1, ref = "Up"), 
-  reference = relevel(Weekly.train$Direction, ref = "Up")
+  mode = "everything",
+  data = relevel(weekly_bag_probs, ref = "Down"), 
+  reference = relevel(Weekly.test$Direction, ref = "Down")
 )
 
-
 ```
-    
+
 <p style="background-color:#e6ffe6; padding: 3%">
+**Bagging**: 
+This model applies 100 bootstrap replications on the sample data from test set. The accuracy rate is 0.4904, leaving **an error rate of 0.5096**. which is higher than out-of-bag (OOB) estimate of misclassification error 0.467, but lower than no-information error rate of 0.5865.
 </p>
+    
 
 ```{r randomForest}
 
-rf.weekly <-  randomForest(Direction ~ . -Today, 
+set.seed(123)
+
+rf.weekly <-  randomForest(Direction~Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume, 
                            data=Weekly.train, 
                            mtry=2)
 
-pred_class_rf1 <-  predict(rf.weekly, data = Weekly.test, method="class")
-
-# get Mean error
-mean(pred_class_rf1 != Weekly.test$Direction)
-
-# get OOB RMSE
-# OOB estimate of  error rate: 47.21%
+weekly_rf_probs <-  predict(rf.weekly, newdata=Weekly.test, type = "class")
 
 confusionMatrix(
-  mode = "prec_recall",
-  data = relevel(pred_class_rf1, ref = "Up"), 
-  reference = relevel(Weekly.train$Direction, ref = "Up")
+  mode = "everything",
+  data = relevel(weekly_rf_probs, ref = "Down"), 
+  reference = relevel(Weekly.test$Direction, ref = "Down")
 )
 
 
-
 ```
+<p style="background-color:#e6ffe6; padding: 3%">
+**Random Forest**: 
+A random forest model is applied on the training data. This tree chooses 2 random variables as candidates to optimise for at each split. This model has an accuracy and F1 of 0.5, leaving an error rate of 0.5, which are both lower than no-information error rate of 0.5865.
+</p>
+
+*** 
+
+<p style="background-color:#e6ffe6; padding: 3%">
+**Summary of results**
+</p>
+***
+
+Model         | Sensitivity    | F1            | No Info Error Rate  |
+------------- | -------------  | ------------- | -------------       |
+Logistic reg  | 0.7209         | 0.5254        | 0.5865              |
+Decision Tree | 0.6279         | 0.5347        | 0.5865              |
+Bagging       | 0.6279         | 0.5047        | 0.5865              |
+Random Forest | 0.6047         | 0.5000        | 0.5865              |
+
+*** 
+<p style="background-color:#e6ffe6; padding: 3%">
+Among the 4 methods, logistic regression has the highest proportion of the positive class correctly predicted (a.k.a. sensitivity). However, the decision tree method has the highest harmonic average of the precision and recall F1 at 0.5347. 
+</p>
