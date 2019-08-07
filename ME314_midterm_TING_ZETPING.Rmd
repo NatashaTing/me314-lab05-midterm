@@ -69,8 +69,8 @@ summary(lm.fit2)
 ```
 
 <ul style="background-color:#e6ffe6; padding: 3%">
-  <li>For urban stores, an additional thousand dollar increase in advertising budget is associated with 0.128015 + -0.006666 = `0.121349`, which is a 0.12 decrease in unit sales. </li>
-  <li>For non-urban, an additional thousand dollar increase in advertising budget is associated with 0.128015, which is a 0.13 rise in unit sales.</li>
+  <li>For **urban stores**, an additional thousand dollar increase in advertising budget is associated with 0.128015 + -0.006666 = `0.121349`, which is a **0.12 decrease in unit sales**. </li>
+  <li>For **non-urban stores**, an additional thousand dollar increase in advertising budget is associated with 0.128015, which is a **0.13 rise in unit sales**.</li>
 </ul>
 
 
@@ -89,10 +89,10 @@ anova(lm.fit1, lm.fit2)
   
   <li>The **second model is less preferred** because: </li>  
     <ol>
-      <li>the interaction term and new main effect `Urban` term both have **high p-values** and are **not statistically significant**.</li>
+      <li>the interaction term and new main effect `Urban` term both have **high p-values** and are **not statistically significant**; </li>
       <ul><li>we **fail to reject the null hypothesis in ANOVA** where  
     $$H_0: \widehat{\beta}_\text{Urban} == \widehat{\beta}_\text{Urban*Advertising} == 0$$</li></ul>
-      <li>there is **no noticable increase in model explanatory power** from including interaction term, with $R^2$ constant at `0.2819`when rounded</li>; and
+      <li>there is **no noticable increase in model explanatory power** from including interaction term, with $R^2$ constant at `0.2819`when rounded;  </li>
       <li>**adjusted-$R^2$ is lower** because of penalty from including 2 more variables.  </li>
       
     </ol>
@@ -189,7 +189,7 @@ print(mean(as.numeric(Direction)))
   
   <li>**`Direction`**
     <ul>
-      <li>Direction seems to be evaluated relative tothe percentage for this week. Therefore, `Direction` will cause a **perfect separation** in regression. </li>
+      <li>Direction seems to be evaluated relative to the percentage for this week. Therefore, `Direction` will cause a **perfect separation** in regression. </li>
       <li>The only factor variable in the dataset `Direction`, has two levels. Because investors may have a preference for the "Up" movement, a logistic regression of it may have **class imbalance** concerns. </li>
       <li>There is **more bullish days** than bearish days in this dataset. </li>
     </ul>
@@ -308,14 +308,14 @@ The confusion matrix shows that the model **predicted correctly 554 times** in t
     <ul>
       <li> `1` - False Positive = `1` - (`70` / `544`) = `1` - `0.1287` = `0.8713`</li>
       <li> `474` True Positive / `544` Total True Positive = `0.8713` </li>
-      <li> **The model correctly predicted 87% of the number of total bullish days.** </li>
+      <li> **The model correctly predicted 87% of the number of total bullish weeks.** </li>
     </ul>
   </li>
   
   <li>**Specificity** (a.k.a. true negative rate) = `0.1814`
     <ul>
       <li>`80` True Negative / `441` Total True Negative = `0.1814`</li>
-      <li>**The model correctly predicted 87% of the number of total bearish days.** </li>
+      <li>The model only correctly predicted 18% of the number of total bearish weeks. This means that **82% of the times, it wrongly predicted that the market would up when it actually went down.** Because of class imbalance this is likely drastic. </li>
     </ul>
   </li>
   
@@ -323,7 +323,7 @@ The confusion matrix shows that the model **predicted correctly 554 times** in t
     <ul>
       <li>Def: `474` True Positive / (`474` True Positive + `361` False Positive)] </li>
       <li> `474` / `835` = 0.5677 </li>
-      <li>**The model correctly predicted 87% of the number of total bullish days.**</li>
+      <li>**The model correctly predicted 87% of the number of total bullish weeks.**</li>
     </ul>
   </li>
   
