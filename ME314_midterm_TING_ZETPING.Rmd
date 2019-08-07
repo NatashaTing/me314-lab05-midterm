@@ -1,7 +1,9 @@
 ---
 title: "Midterm Assignemnt, ME314 2019"
 author: "TING, Zet Ping"
-output: html_document
+output: 
+    html_document: 
+    df_print: paged
 ---
 
 ![](images/lse-logo.jpg)
@@ -23,10 +25,10 @@ output: html_document
 
 This question should be answered using the `Carseats` data set, which is part of the **ISLR** package. This data contains simulated data set containing sales of child car seats at 400 different stores.
 
-```{r, results='hide', warning=FALSE}
+```{r importstatements, results='hide', warning=FALSE}
 
 # load required packages
-PKGs <- c("class","ISLR","dplyr","ggplot2")
+PKGs <- c("class","ISLR","dplyr","ggplot2", "rowr", "caret")
 
 suppressPackageStartupMessages(
   lapply(
@@ -39,7 +41,7 @@ suppressPackageStartupMessages(
 ***
 ##### 1.  Fit a regression model predicting Sales using Advertising and Price as predictors.  Interpret the coefficients, the $R^2$, and the Residual standard error from the regression (by explaining each in a few statements).
 
-```{r}
+```{r q1_a}
 
 data(Carseats)
 
@@ -57,7 +59,7 @@ An increase of 1 thousand dollars in local **advertising** budget is associated 
 
 ##### 2.  Fit a second model by adding Urban as an interactive variable with Advertising.  Interpret the two new coefficients produced by adding this interaction to the Advertising variable that was already present from the first question, in a few statements.
 
-```{r}
+```{r q1_b}
 
 lm.fit2 <- lm(Sales ~ Advertising * Urban + Price, data = Carseats)
 
@@ -65,7 +67,9 @@ summary(lm.fit2)
 
 ```
 
-
+<p style="background-color:#e6ffe6; padding: 3%">
+**TODO Interpret**
+</p>
 
 
   
@@ -73,7 +77,7 @@ summary(lm.fit2)
 ***  
 ##### 3.  Which of these two models is preferable, and why?  
 
-```{r}
+```{r q1_c}
 anova(lm.fit1, lm.fit2)
 ```
 
@@ -85,40 +89,223 @@ anova(lm.fit1, lm.fit2)
       <li>the interaction term and new main effect `Urban` term both have **high p-values** and are **not statistically significant**.</li>
       <ul><li>we **fail to reject the null hypothesis in ANOVA** where  
     $$H_0: \widehat{\beta}_\text{Urban} == \widehat{\beta}_\text{Urban*Advertising} == 0$$</li></ul>
-      <li>there is **no noticable increase in model explanatory power** from including interaction term, with $R^2$ constant at `0.2819`when rounded</li>
-      <li>**adjusted-$R^2$ is lower** because of penalty from including 2 more variables;  </li>
+      <li>there is **no noticable increase in model explanatory power** from including interaction term, with $R^2$ constant at `0.2819`when rounded</li>; and
+      <li>**adjusted-$R^2$ is lower** because of penalty from including 2 more variables.  </li>
       
     </ol>
 </ul>
-
+  
+  
+  
 ## Question 2:
 
 You will need to load the core library for the course textbook and any other libraries you find suitable to answer the question: 
 
 
-
 This question should be answered using the `Weekly` data set, which is part of the **ISLR** package. This data contains 1,089 weekly stock returns for 21 years, from the beginning of 1990 to the end of 2010.
 
-1.   Perform exploratory data analysis of the `Weekly` data (produce some numerical and graphical summaries). Discuss any patterns that emerge. 
+#### 1.   Perform exploratory data analysis of the `Weekly` data (produce some numerical and graphical summaries). Discuss any patterns that emerge. 
+
+```{r q2_a_explore}
+data(Weekly)
+
+attach(Weekly)
+
+sum(is.na(Weekly))      # = 0
+
+summary(dplyr::select_if(Weekly, is.numeric))   
+
+# check how many weeks are included in each year
+count_by_years <- group_by(Weekly, Year) %>% 
+                                    summarise(n = n())
+
+count_by_years
+
+
+# ---- explore Lagged returns
+# generate a correlation matrix between the lag variables 
+corr.mat <- dplyr::select(Weekly, -Direction) %>%
+          dplyr::mutate(as.numeric(Direction)) %>%
+                      cor() %>% 
+                      round(3) 
+corr.mat
+
+```
 
 ```{r}
+# plot the correlation between the lag variables
+plot(corr.mat[which(rownames(corr.mat)=="Lag2"), -which(rownames(corr.mat)=="Lag2")], 
+              type="b", col=2,xlab="index (other variable)", ylab="correlation")
+lines(corr.mat[which(rownames(corr.mat)=="Lag1"),-which(rownames(corr.mat)=="Lag1")],
+              type="b", col=3, ylab="")
+lines(corr.mat[which(rownames(corr.mat)=="Lag3"),-which(rownames(corr.mat)=="Lag3")], 
+              type="b", col=4, ylab="")
+lines(corr.mat[which(rownames(corr.mat)=="Lag4"),-which(rownames(corr.mat)=="Lag4")], 
+              type="b", col=5, ylab="")
+lines(corr.mat[which(rownames(corr.mat)=="Lag5"),-which(rownames(corr.mat)=="Lag5")], 
+              type="b", col=6)
+legend("bottomright", legend = c("Lag2", "Lag1", "Lag3", "Lag4", "Lag5"), 
+       col = 2:6, lwd = 2)
+
 ```
-** 
-- a lot other summary stats and visualisation packages available to do this
-- explore and highlight class imbalance 
-- graphing: use ggplot 
-**
+
+```{r}
+
+# ---- explore Direction
+
+plot(Today, Direction)
+abline( v = 0 , col = "red")
+
+ggplot(data = Weekly)  + 
+  geom_point(mapping = aes(x = Year, y = Volume)) + 
+  geom_smooth(mapping = aes(x = Year, y = Volume), col="red")
 
 
-2. Fit a logistic regression with `Direction` as the response and different combinations of lag variables plus `Volume` as predictors. Use the period from 1990 to 2008 as your training set and 2009-2010 as your test set. Produce a summary of results. 
+print(mean(as.numeric(Direction)))
+
+```
+
+<ul style="background-color:#e6ffe6; padding: 3%">
+  ##### Observation 
+  <li> Data is dated from 1990 to 2010.</li>  
+  
+  <li> **Returns**
+    <ul>
+      <li>From the correlation matrix plot, a lot of the **lag variables are correlated** with percentage returns from 2 weeks (periods) before them. </li>
+      <li>However, the autocorrelation pattern is erratic. There is no other clear trend. </li>
+    </ul>
+  </li>
+  
+  <li> **`Volume` **
+    <ul> 
+    <li>`Volume` traded per day is **highly variant** week-to-week. Its standard deviation is `(sd(Volume) / mean(Volume)) %>% round(2)` = `1.07` times its mean of `1.57`.  </li>
+    <li>This means that on average, for any given week we can expect the next week's volume to be 1.68 billion shares more or less than the previous week. </li>
+    <li>Volume also exhibits an **increasing trend over time**. </li>
+    </ul>
+  </li>
+  
+  <li>**`Direction`**
+    <ul>
+      <li>Direction seems to be evaluated relative tothe percentage for this week. Therefore, `Direction` will cause a **perfect separation** in regression. </li>
+      <li>The only factor variable in the dataset `Direction`, has two levels. Because investors may have a preference for the "Up" movement, a logistic regression of it may have **class imbalance** concerns. </li>
+      <li>There is **more bullish days** than bearish days in this dataset. </li>
+    </ul>
+  </li>
+</ul>
+
+  
+  
+#### 2. Fit a logistic regression with `Direction` as the response and different combinations of lag variables plus `Volume` as predictors. Use the period from 1990 to 2008 as your training set and 2009-2010 as your test set. Produce a summary of results. 
 
     Do any of the predictors appear to be statistically significant in your training set? If so, which ones?
+    
 
-3.  From your test set, compute the confusion matrix, and calculate accuracy, precision, recall and F1. 
+```{r}
+
+Weekly.test <- Weekly %>% dplyr::filter(Year %in% c(2009,2010))
+Weekly.train <- Weekly %>% dplyr::filter(!Year %in% c(2009, 2010))
+
+# test if sensible after splitting
+isTRUE(nrow(Weekly.train) + nrow(Weekly.test) == nrow(Weekly))
+isTRUE(ncol(Weekly.train) == ncol(Weekly.test))
+
+logit.fit_all <- glm(Direction ~ Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume , 
+                 family = "binomial", 
+                 data = Weekly.train)
+
+logit.fit_notf4 <- glm(Direction ~ Year + Lag1 + Lag2 + Lag3 + Lag4 + Volume,
+                      family = "binomial",
+                      data = Weekly.train)
+
+logit.fit_notf3 <- glm(Direction ~ Year + Lag1 + Lag2 + Lag3 + Volume,
+                      family = "binomial",
+                      data = Weekly.train)
+
+logit.fit_notf2 <- glm(Direction ~ Year + Lag1 + Lag2 + Volume,
+                      family = "binomial",
+                      data = Weekly.train)
+
+logit.fit_notf1 <- glm(Direction ~ Year + Lag1 + Volume,
+                      family = "binomial",
+                      data = Weekly.train)
+
+logit.fit_nolag <- glm(Direction ~ Year + Volume,
+                      family = "binomial",
+                      data = Weekly.train)
+
+allfit <- c(logit.fit_all, logit.fit_notf4, logit.fit_notf3, logit.fit_notf2, logit.fit_notf1, logit.fit_nolag)
+
+# get list of p-values
+logit.fit_allp <- summary(logit.fit_all)$coefficients[,4]
+logit.fit_notf4p <- summary(logit.fit_notf4)$coefficients[,4]
+logit.fit_notf3p <- summary(logit.fit_notf3)$coefficients[,4]
+logit.fit_notf2p <- summary(logit.fit_notf2)$coefficients[,4]
+logit.fit_notf1p <- summary(logit.fit_notf1)$coefficients[,4]
+logit.fit_nolagp <- summary(logit.fit_nolag)$coefficients[,4]
+
+# this is a table of p-values
+tryll <- cbind.fill(logit.fit_allp, logit.fit_notf4p, logit.fit_notf3p, 
+                    logit.fit_notf2p,logit.fit_notf1p, logit.fit_nolagp, fill = NA)
+
+# intercept aside, it looks like only Lag1 is slightly signif. (p value 0.03)
+tryll
+
+# verify that table is correcly representing p-values from logistic fit
+summary(logit.fit_all)
+logit.fit_allp[2]         
+
+```
+
+<p style="background-color:#e6ffe6; padding: 3%">
+Only `Lag1` is moderately significant with a p-value of 0.03, when `Direction` is regressed on all other lag variables and trade `Volume` on a logistic regression. 
+</p>
+
+  
+    
+    
+#### 3.  From your test set, compute the confusion matrix, and calculate accuracy, precision, recall and F1. 
      
     Explain what the confusion matrix is telling you about the types of mistakes made by logistic regression, and what can you learn from additional measures of fit like accuracy, precision, recall, and F1.
 
-4.  (Extra credit) Experiment with alternative classification methods. 
+```{r}
+
+logit.fit_all_model <- train(
+  Direction ~ Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume, 
+  data = Weekly.train, 
+  method = "glm",
+  family = "binomial",
+  trControl = trainControl(method = "cv", number = 10))
+
+pred_class <- predict(logit.fit_all_model, Weekly.train)
+
+confusionMatrix(
+  data = relevel(pred_class, ref = "Up"), 
+  reference = relevel(Weekly.train$Direction, ref = "Up")
+)
+
+```
+
+<p style="background-color:#e6ffe6; padding: 3%">
+The confusion matrix shows that the model **predicted correctly 554 times** in total. The model made **431 incorrect predictions** in total: in **361** occasions having predicted "Up" when market is down; and **70** times predicted "Down" when market goes up. 
+
+</p>
+<ol style="background-color:#e6ffe6; padding: 3%">
+  <li>Accuracy = `0.5624 ` </li>
+    <ul>
+      <li>`554` True Positive / `985` Total Predictions</li>
+      <li>Model is correct in its prediction 56% of the time. </>
+    </ul>
+  <li>Specificity = `0.1814`</li> 
+    <ul>
+      <li> 1 - False Positive = `1` - (`70` / `544`) = `1` - `0.1287` = `0.8713`</li>
+    </ul>
+  <li>Sensitivity = `0.8713`</li>
+  <li>Recall = `` </li>
+  
+</ol>
+
+
+#### 4.  (Extra credit) Experiment with alternative classification methods. 
 
     Present the results of your experiments reporting method, associated confusion matrix, and measures of fit on the test set like accuracy, precision, recall, and F1.
     
