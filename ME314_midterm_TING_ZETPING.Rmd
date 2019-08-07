@@ -56,7 +56,8 @@ An increase of 1 thousand dollars in local **advertising** budget is associated 
   
     
 ***  
-
+  
+  
 ##### 2.  Fit a second model by adding Urban as an interactive variable with Advertising.  Interpret the two new coefficients produced by adding this interaction to the Advertising variable that was already present from the first question, in a few statements.
 
 ```{r q1_b}
@@ -67,14 +68,16 @@ summary(lm.fit2)
 
 ```
 
-<p style="background-color:#e6ffe6; padding: 3%">
-**TODO Interpret**
-</p>
+<ul style="background-color:#e6ffe6; padding: 3%">
+  <li>For urban stores, an additional thousand dollar increase in advertising budget is associated with 0.128015 + -0.006666 = `0.121349`, which is a 0.12 decrease in unit sales. </li>
+  <li>For non-urban, an additional thousand dollar increase in advertising budget is associated with 0.128015, which is a 0.13 rise in unit sales.</li>
+</ul>
 
 
   
     
-***  
+***    
+
 ##### 3.  Which of these two models is preferable, and why?  
 
 ```{r q1_c}
@@ -194,7 +197,8 @@ print(mean(as.numeric(Direction)))
 </ul>
 
   
-  
+    
+    
 #### 2. Fit a logistic regression with `Direction` as the response and different combinations of lag variables plus `Volume` as predictors. Use the period from 1990 to 2008 as your training set and 2009-2010 as your test set. Produce a summary of results. 
 
     Do any of the predictors appear to be statistically significant in your training set? If so, which ones?
@@ -262,7 +266,8 @@ Only `Lag1` is moderately significant with a p-value of 0.03, when `Direction` i
 
   
     
-    
+      
+      
 #### 3.  From your test set, compute the confusion matrix, and calculate accuracy, precision, recall and F1. 
      
     Explain what the confusion matrix is telling you about the types of mistakes made by logistic regression, and what can you learn from additional measures of fit like accuracy, precision, recall, and F1.
@@ -331,7 +336,8 @@ The confusion matrix shows that the model **predicted correctly 554 times** in t
   
 </ol>
 
-
+  
+  
 #### 4.  (Extra credit) Experiment with alternative classification methods. 
   Present the results of your experiments reporting method, associated confusion matrix, and measures of fit on the test set like accuracy, precision, recall, and F1.
     
@@ -350,30 +356,79 @@ library(pdp)         # for feature effects
 
 weekly_dt1 <- rpart(
   formula = Direction ~ Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume,
-  data    = Weekly.train
-) #TODO ask why cannot use anova? 
+  data    = Weekly.train,
+  method = "class"
+) 
 
 rpart.plot(weekly_dt1)
 
 plotcp(weekly_dt1)
 
-weekly_dt3 <- train(
-  Direction ~ Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume,
-  data = Weekly.train,
-  method = "rpart",
-  trControl = trainControl(method = "cv", number = 10),
-  tuneLength = 20
-)
+pre_class_dt1 <- predict(weekly_dt1, Weekly.train, type="class")
 
-ggplot(weekly_dt3)
+confusionMatrix(
+  mode = "prec_recall",
+  data = relevel(pre_class_dt1, ref = "Up"), 
+  reference = relevel(Weekly.train$Direction, ref = "Up")
+)
 
 ```
   
 <p style="background-color:#e6ffe6; padding: 3%">
+
 </p>
 
 ```{r Q2-bagging}
+
+library(randomForest)
+library(ipred)       # for fitting bagged decision trees
+
+set.seed(123)
+
+# train bagged model
+week_bag1 <- bagging(
+  formula = Direction ~ Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume,
+  data = Weekly.train,
+  nbagg = 100,  
+  coob = TRUE,
+  control = rpart.control(minsplit = 2, cp = 0)
+)
+
+pred_class_bag1 <- predict(week_bag1, method="class", Weekly.train)
+
+
+confusionMatrix(
+  mode = "prec_recall",
+  data = relevel(pred_class_bag1, ref = "Up"), 
+  reference = relevel(Weekly.train$Direction, ref = "Up")
+)
+
+
 ```
     
 <p style="background-color:#e6ffe6; padding: 3%">
 </p>
+
+```{r randomForest}
+
+rf.weekly <-  randomForest(Direction ~ . -Today, 
+                           data=Weekly.train, 
+                           mtry=2)
+
+pred_class_rf1 <-  predict(rf.weekly, data = Weekly.test, method="class")
+
+# get Mean error
+mean(pred_class_rf1 != Weekly.test$Direction)
+
+# get OOB RMSE
+# OOB estimate of  error rate: 47.21%
+
+confusionMatrix(
+  mode = "prec_recall",
+  data = relevel(pred_class_rf1, ref = "Up"), 
+  reference = relevel(Weekly.train$Direction, ref = "Up")
+)
+
+
+
+```
